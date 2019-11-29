@@ -1,25 +1,30 @@
 package application;
-	
-import javafx.application.Application;
-import javafx.stage.Stage;
-import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
 
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import view.MainView;
 
 public class Main extends Application {
+
 	@Override
-	public void start(Stage primaryStage) {
+	public void start(Stage stage) {
+		MainView mainView = new MainView(stage);
+		Scene scene = mainView.initializeMainView();
+
 		try {
-			BorderPane root = new BorderPane();
-			Scene scene = new Scene(root,400,400);
-			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-			primaryStage.setScene(scene);
-			primaryStage.show();
-		} catch(Exception e) {
+
+			stage.setScene(scene);
+			stage.setTitle("DrawingApp");
+			stage.setMaximized(true);
+			stage.setOnCloseRequest(e -> Platform.exit());
+			stage.show();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static void main(String[] args) {
 		launch(args);
 	}

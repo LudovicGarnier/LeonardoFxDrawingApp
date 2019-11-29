@@ -1,0 +1,5 @@
+package effects;
+
+public enum EffectEnum {
+	ADJUST_TYPE_HUE, ADJUST_TYPE_CONTRAST, ADJUST_TYPE_SATURATION, ADJUST_TYPE_BRIGHTNESS;
+}
