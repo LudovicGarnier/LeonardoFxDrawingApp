@@ -1,12 +1,19 @@
 package view.toolbox;
 
+import java.awt.event.MouseEvent;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.ImageCursor;
+import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -29,39 +36,55 @@ public class ToolBox extends VBox {
 	private ColorPicker colorPicker;
 	private Slider pencilSlider;
 	private Label pencilSliderLabel;
-	private Button pencilToolButton = new Button();
-	private Button fillingToolButton = new Button();
-	private Button textToolButton = new Button();
-	private Button eraserToolButton = new Button();
-	private Button colorSelectionToolButton = new Button();
-	private Button zoomToolButton = new Button();
-	private Image pencilIcon = new Image(getClass().getResourceAsStream("/ressources/pencil-40.PNG"));
-	private Image fillIcon = new Image(getClass().getResourceAsStream("/ressources/fill-40.PNG"));
-	private Image colorDropper = new Image(getClass().getResourceAsStream("/ressources/color-dropper-40.PNG"));
-	private Image eraser = new Image(getClass().getResourceAsStream("/ressources/eraser-40.PNG"));
-	private Image text = new Image(getClass().getResourceAsStream("/ressources/text-40.PNG"));
-	private Image zoomIn = new Image(getClass().getResourceAsStream("/ressources/zoom-in-40.PNG"));
-	private ImageCursor pencilCursor = new ImageCursor(pencilIcon, 0, 40);
-	private ImageCursor fillCursor = new ImageCursor(fillIcon, 0, 40);
-	private ImageCursor colorDropperCursor = new ImageCursor(colorDropper, 0, 40);
-	private ImageCursor eraserCursor = new ImageCursor(eraser, 0, 40);
-	private ImageCursor textCursor = new ImageCursor(text, 0, 40);
-	private ImageCursor zoomCursor = new ImageCursor(zoomIn, 0, 40);
+	private final Button defaultCursorButton;
+	private final Button pencilToolButton;
+	private final Button fillingToolButton;
+	private final Button textToolButton;
+	private final Button eraserToolButton;
+	private final Button colorSelectionToolButton;
+	private final Button zoomToolButton;
+	//
+	private final String crayonIconUrl = "/ressources/icons8-crayon-40.png";
+	private final String pinceauIconUrl = "/ressources/icons8-paint-40.png";
+	private final String rollerIconUrl = "/ressources/icons8-paint-roller-40.png";
+	private final String sprayerIconUrl = "/ressources/icons8-paint-sprayer-40.png";
+	//
+	private ComboBox<PencilComboItem> pencilStyles = new ComboBox<PencilComboItem>();
+	//
+	private final Image cursorIcon = new Image(getClass().getResourceAsStream("/ressources/icons8-curseur-40.png"));
+	private final Image pencilIcon = new Image(getClass().getResourceAsStream("/ressources/pencil-40.PNG"));
+	private final Image fillIcon = new Image(getClass().getResourceAsStream("/ressources/fill-40.PNG"));
+	private final Image colorDropper = new Image(getClass().getResourceAsStream("/ressources/color-dropper-40.PNG"));
+	private final Image eraser = new Image(getClass().getResourceAsStream("/ressources/eraser-40.PNG"));
+	private final Image text = new Image(getClass().getResourceAsStream("/ressources/text-40.PNG"));
+	private final Image zoomIn = new Image(getClass().getResourceAsStream("/ressources/zoom-in-40.PNG"));
+	private final ImageCursor pencilCursor = new ImageCursor(pencilIcon, 0, 40);
+	private final ImageCursor fillCursor = new ImageCursor(fillIcon, 0, 40);
+	private final ImageCursor colorDropperCursor = new ImageCursor(colorDropper, 0, 40);
+	private final ImageCursor eraserCursor = new ImageCursor(eraser, 0, 40);
+	private final ImageCursor textCursor = new ImageCursor(text, 0, 40);
+	private final ImageCursor zoomCursor = new ImageCursor(zoomIn, 0, 40);
 
 	public ToolBox(MainView view) {
 		super(5.0);
 		this.mainView = view;
 		GridPane gridPane = new GridPane();
-		this.pencilToolButton.setGraphic(new ImageView(pencilIcon));
-		this.fillingToolButton.setGraphic(new ImageView(fillIcon));
-		this.textToolButton.setGraphic(new ImageView(text));
-		this.eraserToolButton.setGraphic(new ImageView(eraser));
-		this.colorSelectionToolButton.setGraphic(new ImageView(colorDropper));
-		this.zoomToolButton.setGraphic(new ImageView(zoomIn));
+		this.defaultCursorButton = new Button(null, new ImageView(cursorIcon));
+		this.pencilToolButton = new Button(null, new ImageView(pencilIcon));
+		this.fillingToolButton = new Button(null, new ImageView(fillIcon));
+		this.textToolButton = new Button(null, new ImageView(text));
+		this.eraserToolButton = new Button(null, new ImageView(eraser));
+		this.colorSelectionToolButton = new Button(null, new ImageView(colorDropper));
+		this.zoomToolButton = new Button(null, new ImageView(zoomIn));
+		//
+		this.pencilStyles = initializeComboBox();
 		//
 		this.colorPicker = createColorPicker();
 		this.pencilSlider = createPencilSlider();
 		//
+		this.defaultCursorButton.setOnAction((ActionEvent event) -> {
+			onDefaultButtonClicked();
+		});
 		this.pencilToolButton.setOnAction((ActionEvent event) -> {
 			onPencilButtonClicked();
 		});
@@ -82,28 +105,93 @@ public class ToolBox extends VBox {
 			onPencilSliderChanged();
 		});
 
-		GridPane.setConstraints(pencilToolButton, 0, 0);
-		GridPane.setConstraints(fillingToolButton, 1, 0);
-		GridPane.setConstraints(textToolButton, 2, 0);
-		GridPane.setConstraints(eraserToolButton, 0, 1);
-		GridPane.setConstraints(colorSelectionToolButton, 1, 1);
-		GridPane.setConstraints(zoomToolButton, 2, 1);
+		GridPane.setConstraints(defaultCursorButton, 0, 0);
+		GridPane.setConstraints(pencilToolButton, 1, 0);
+		GridPane.setConstraints(fillingToolButton, 2, 0);
+		GridPane.setConstraints(textToolButton, 0, 1);
+		GridPane.setConstraints(eraserToolButton, 1, 1);
+		GridPane.setConstraints(pencilStyles, 0, 2);
+		GridPane.setConstraints(colorSelectionToolButton, 2, 1);
+		GridPane.setConstraints(zoomToolButton, 2, 2);
 
-		gridPane.getChildren().addAll(pencilToolButton, fillingToolButton, textToolButton, eraserToolButton,
-				colorSelectionToolButton, zoomToolButton);
-		this.getChildren().add(gridPane);
-		this.getChildren().add(colorPicker);
-		this.getChildren().addAll(pencilSlider, pencilSliderLabel);
+		gridPane.getChildren().addAll(defaultCursorButton, pencilToolButton, fillingToolButton, textToolButton,
+				eraserToolButton, pencilStyles, colorSelectionToolButton, zoomToolButton);
+		gridPane.setVgap(3);
+		this.getChildren().addAll(gridPane, colorPicker, pencilSlider, pencilSliderLabel);
+
 		//
 		this.setSpacing(12);
-		gridPane.setPadding(new Insets(5));
+		gridPane.setPadding(new Insets(12));
+	}
+
+	private ComboBox<PencilComboItem> initializeComboBox() {
+		final ObservableList<PencilComboItem> options = FXCollections.observableArrayList(
+				new PencilComboItem(crayonIconUrl), new PencilComboItem(pinceauIconUrl),
+				new PencilComboItem(rollerIconUrl), new PencilComboItem(sprayerIconUrl));
+		this.pencilStyles.setItems(options);
+		this.pencilStyles.setButtonCell(new PencilComboItemListCell(null));
+		this.pencilStyles.setCellFactory(listView -> new PencilComboItemListCell(this.pencilStyles));
+		this.pencilStyles.setPrefWidth(40);
+		this.pencilStyles.setValue(new PencilComboItem(crayonIconUrl));
+		return this.pencilStyles;
+	}
+
+	/**
+	 * 
+	 * @author Ludov
+	 *
+	 */
+	private static final class PencilComboItem {
+		private final Image icon;
+
+		public PencilComboItem(final String iconUrl) {
+			this.icon = new Image(iconUrl);
+		}
+
+		public Image getIcon() {
+			return this.icon;
+		}
+	}
+
+	private static final class PencilComboItemListCell extends ListCell<PencilComboItem> {
+
+		private final ComboBox<PencilComboItem> parent;
+		private final ImageView imageView = new ImageView();
+		private final Label label = new Label(null, imageView);
+		private PencilComboItem lastItem;
+
+		public PencilComboItemListCell(final ComboBox<PencilComboItem> parent) {
+			super();
+			this.parent = parent;
+		}
+
+		@Override
+		protected void updateItem(final PencilComboItem item, final boolean empty) {
+			super.updateItem(item, empty);
+			lastItem = item;
+			Node graphic = null;
+			imageView.setImage(null);
+			label.setText(null);
+			if (!empty && item != null) {
+				imageView.setImage(item.getIcon());
+				graphic = label;
+			}
+			setGraphic(graphic);
+			setText(null);
+		}
+
+		private void selectInCombo(final MouseEvent mouseEvent) {
+			if (parent != null) {
+				parent.getSelectionModel().select(lastItem);
+			}
+		}
 	}
 
 	/**
 	 * 
 	 * @return an initialized ColorPicker
 	 */
-	public ColorPicker createColorPicker() {
+	private ColorPicker createColorPicker() {
 		this.colorPicker = new ColorPicker();
 		colorPicker.setValue(Color.BLACK);
 		return colorPicker;
@@ -113,7 +201,7 @@ public class ToolBox extends VBox {
 	 * 
 	 * @return the initialized slider
 	 */
-	public Slider createPencilSlider() {
+	private Slider createPencilSlider() {
 		this.pencilSliderLabel = new Label("5.0");
 		double defaultValue = 5.0;
 		this.pencilSlider = new Slider(0, 100, defaultValue);
@@ -122,9 +210,21 @@ public class ToolBox extends VBox {
 	}
 
 	/**
+	 * called when default button is clicked
+	 */
+	private void onDefaultButtonClicked() {
+		this.mainView.setCursor(new ImageCursor());
+		this.mainView.getDrawingMode().getCanvas().setOnMousePressed(e -> {
+		});
+
+		this.mainView.getDrawingMode().getCanvas().setOnMouseDragged(e -> {
+		});
+	}
+
+	/**
 	 * called when pencil button is clicked
 	 */
-	public void onPencilButtonClicked() {
+	private void onPencilButtonClicked() {
 		this.mainView.setCursor(pencilCursor);
 
 		GraphicsContext gc = this.mainView.getGraphicsContext();
@@ -149,7 +249,7 @@ public class ToolBox extends VBox {
 	/**
 	 * called when eraser button is clicked
 	 */
-	public void onEraserButtonClicked() {
+	private void onEraserButtonClicked() {
 		this.mainView.setCursor(eraserCursor);
 		GraphicsContext gc = this.mainView.getGraphicsContext();
 		this.mainView.getDrawingMode().getCanvas().setOnMousePressed(e -> {
@@ -167,7 +267,7 @@ public class ToolBox extends VBox {
 	/**
 	 * called when filling button is clicked
 	 */
-	public void onFillingButtonClicked() {
+	private void onFillingButtonClicked() {
 		this.mainView.setCursor(fillCursor);
 		GraphicsContext gc = this.mainView.getGraphicsContext();
 		this.mainView.getDrawingMode().getCanvas().setOnMousePressed(e -> {
@@ -186,7 +286,7 @@ public class ToolBox extends VBox {
 	/**
 	 * called when color selection button is clicked
 	 */
-	public void onColorSelectionButtonClicked() {
+	private void onColorSelectionButtonClicked() {
 		this.mainView.setCursor(colorDropperCursor);
 		GraphicsContext gc = this.mainView.getGraphicsContext();
 		this.mainView.getDrawingMode().getCanvas().setOnMousePressed(e -> {
@@ -198,7 +298,7 @@ public class ToolBox extends VBox {
 	/**
 	 * called when pencil slider is clicked
 	 */
-	public void onPencilSliderChanged() {
+	private void onPencilSliderChanged() {
 		GraphicsContext gc = this.mainView.getGraphicsContext();
 		double value = pencilSlider.getValue();
 		String str = String.format("%.1f", value);

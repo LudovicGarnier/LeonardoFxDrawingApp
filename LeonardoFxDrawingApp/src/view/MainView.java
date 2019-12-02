@@ -147,18 +147,26 @@ public class MainView extends Parent {
 		Menu editMenu = new Menu("Edit");
 		MenuItem undoItem = new MenuItem("Undo");
 		MenuItem redoItem = new MenuItem("Redo");
-		MenuItem preferencesItem = new MenuItem("preferences");
+		MenuItem preferencesItem = new MenuItem("Preferences");
 		editMenu.getItems().addAll(undoItem, redoItem, new SeparatorMenuItem(), preferencesItem);
+		// Transform Menu
+		Menu transformMenu = new Menu("Transform");
+		MenuItem rotateItem = new MenuItem("Rotate");
+		MenuItem translateItem = new MenuItem("Translate");
+		MenuItem scalingItem = new MenuItem("Scale");
+		MenuItem shearingItem = new MenuItem("Shearing");
+		MenuItem transformationItem = new MenuItem("Transformation");
+		transformMenu.getItems().addAll(rotateItem, translateItem, scalingItem, shearingItem, transformationItem);
 		// Effect Menu
 		Menu effectMenu = new Menu("Effect");
 		MenuItem bloomItem = new MenuItem("Bloom");
 		MenuItem colorAdjustItem = new MenuItem("Color Adjust");
 		colorAdjustItem.setOnAction(e -> {
-			if (this.drawingModel.getImageView() != null) {
-				System.out.println(this.drawingModel.getImageView());
-				new ColorAdjustEffect(this.drawingModel, this);
+//			if (this.drawingModel.getImageView() != null) {
+			System.out.println(this.drawingModel.getImageView());
+			new ColorAdjustEffect(this.drawingModel, this);
 
-			}
+//			}
 		});
 		//
 		Menu blurtMenu = new Menu("Blur");
@@ -222,6 +230,7 @@ public class MainView extends Parent {
 
 		this.menuBar.getMenus().add(fileMenu);
 		this.menuBar.getMenus().add(editMenu);
+		this.menuBar.getMenus().add(transformMenu);
 		this.menuBar.getMenus().add(effectMenu);
 		this.menuBar.getMenus().add(helpMenu);
 		return menuBar;

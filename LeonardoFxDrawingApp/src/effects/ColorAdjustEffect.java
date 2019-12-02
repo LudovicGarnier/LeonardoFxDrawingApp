@@ -52,31 +52,53 @@ public class ColorAdjustEffect extends Stage {
 		buttonBox.setPadding(new Insets(12));
 		//
 		ColorAdjust colorAdjust = new ColorAdjust();
-		this.model.getImageView().setEffect(colorAdjust);
+
+		if (this.model.getImageView() != null) {
+			this.model.getImageView().setEffect(colorAdjust);
+		}
+		this.model.getCanvas().getGraphicsContext2D().setEffect(colorAdjust);
+
 		//
 		applyButton.setOnAction(e -> {
 			File output = new File("tmp.png");
 			try {
-				ImageIO.write(SwingFXUtils.fromFXImage(this.model.getImageView().snapshot(null, null), null), "png",
-						output);
-				BufferedImage bufferedImage = ImageIO.read(output);
-				Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-				ImageView tmp = new ImageView(image);
-				this.model.setImageView(tmp);
-				this.view.setDrawingModel(this.model);
-
-				this.model.getImageView().setEffect(null);
+				if (this.model.getImageView() != null) {
+					this.model.getImageView().setEffect(colorAdjust);
+					this.model.getCanvas().getGraphicsContext2D().setEffect(colorAdjust);
+					ImageIO.write(SwingFXUtils.fromFXImage(this.model.getImageView().snapshot(null, null), null), "png",
+							output);
+					BufferedImage bufferedImage = ImageIO.read(output);
+					Image image = SwingFXUtils.toFXImage(bufferedImage, null);
+					ImageView tmp = new ImageView(image);
+					this.model.setImageView(tmp);
+					this.view.setDrawingModel(this.model);
+					this.model.getImageView().setEffect(null);
+				} else {
+					this.model.getCanvas().getGraphicsContext2D().setEffect(colorAdjust);
+					ImageIO.write(SwingFXUtils.fromFXImage(this.model.getCanvas().snapshot(null, null), null), "png",
+							output);
+					BufferedImage bufferedImage = ImageIO.read(output);
+					Image image = SwingFXUtils.toFXImage(bufferedImage, null);
+					ImageView tmp = new ImageView(image);
+					this.model.setImageView(tmp);
+					this.view.setDrawingModel(this.model);
+				}
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
 
-			this.model.getImageView().setEffect(null);
+			this.model.getCanvas().getGraphicsContext2D().applyEffect(colorAdjust);
+			if (this.model.getImageView() != null) {
+				this.model.getImageView().setEffect(null);
+			}
 			this.close();
 
 		});
 
 		cancelButton.setOnAction(e -> {
-			drawingModel.getImageView().setEffect(null);
+			if (this.model.getImageView() != null) {
+				this.model.getImageView().setEffect(null);
+			}
 			this.close();
 		});
 		//
@@ -124,7 +146,7 @@ public class ColorAdjustEffect extends Stage {
 	/**
 	 * 
 	 */
-	public void onSliderChanged(Slider slider, Label label) {
+	private void onSliderChanged(Slider slider, Label label) {
 		double value = slider.getValue();
 		String str = String.format("%.1f", value);
 		label.setText(str);
@@ -168,51 +190,4 @@ public class ColorAdjustEffect extends Stage {
 		return slider;
 	}
 
-	public Slider getContrastSlider() {
-		return contrastSlider;
-	}
-
-	public void setContrastSlider(Slider contrastSlider) {
-		this.contrastSlider = contrastSlider;
-	}
-
-	public DrawingModel getModel() {
-		return model;
-	}
-
-	public void setModel(DrawingModel model) {
-		this.model = model;
-	}
-
-	public Slider getHueSlider() {
-		return hueSlider;
-	}
-
-	public void setHueSlider(Slider hueSlider) {
-		this.hueSlider = hueSlider;
-	}
-
-	public MainView getView() {
-		return view;
-	}
-
-	public void setView(MainView view) {
-		this.view = view;
-	}
-
-	public Slider getBrightnessSlider() {
-		return brightnessSlider;
-	}
-
-	public void setBrightnessSlider(Slider brightnessSlider) {
-		this.brightnessSlider = brightnessSlider;
-	}
-
-	public Slider getSaturationSlider() {
-		return saturationSlider;
-	}
-
-	public void setSaturationSlider(Slider saturationSlider) {
-		this.saturationSlider = saturationSlider;
-	}
 }
