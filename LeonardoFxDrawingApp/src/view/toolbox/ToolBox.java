@@ -2,6 +2,8 @@ package view.toolbox;
 
 import java.awt.event.MouseEvent;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -78,6 +80,21 @@ public class ToolBox extends VBox {
 		this.zoomToolButton = new Button(null, new ImageView(zoomIn));
 		//
 		this.pencilStyles = initializeComboBox();
+		this.pencilStyles.getSelectionModel().selectFirst();
+		this.pencilStyles.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<PencilComboItem>() {
+
+			@Override
+			public void changed(ObservableValue<? extends PencilComboItem> observable, PencilComboItem oldValue,
+					PencilComboItem newValue) {
+				String newvalString = newValue.getName();
+				System.out.println(newvalString);
+				System.out.println(newValue.getIcon());
+				if (newvalString.equals(pinceauIconUrl)) {
+					System.out.println("toto");
+				}
+			}
+
+		});
 		//
 		this.colorPicker = createColorPicker();
 		this.pencilSlider = createPencilSlider();
@@ -126,13 +143,13 @@ public class ToolBox extends VBox {
 
 	private ComboBox<PencilComboItem> initializeComboBox() {
 		final ObservableList<PencilComboItem> options = FXCollections.observableArrayList(
-				new PencilComboItem(crayonIconUrl), new PencilComboItem(pinceauIconUrl),
-				new PencilComboItem(rollerIconUrl), new PencilComboItem(sprayerIconUrl));
+				new PencilComboItem("crayon", crayonIconUrl), new PencilComboItem("pinceau", pinceauIconUrl),
+				new PencilComboItem("roller",rollerIconUrl), new PencilComboItem("sprayer",sprayerIconUrl));
 		this.pencilStyles.setItems(options);
 		this.pencilStyles.setButtonCell(new PencilComboItemListCell(null));
 		this.pencilStyles.setCellFactory(listView -> new PencilComboItemListCell(this.pencilStyles));
 		this.pencilStyles.setPrefWidth(40);
-		this.pencilStyles.setValue(new PencilComboItem(crayonIconUrl));
+		this.pencilStyles.setValue(new PencilComboItem("crayon",crayonIconUrl));
 		return this.pencilStyles;
 	}
 
@@ -143,9 +160,15 @@ public class ToolBox extends VBox {
 	 */
 	private static final class PencilComboItem {
 		private final Image icon;
+		private String name;
 
-		public PencilComboItem(final String iconUrl) {
+		public PencilComboItem(final String name, final String iconUrl) {
+			this.name = name;
 			this.icon = new Image(iconUrl);
+		}
+
+		public String getName() {
+			return this.name;
 		}
 
 		public Image getIcon() {
@@ -174,6 +197,7 @@ public class ToolBox extends VBox {
 			label.setText(null);
 			if (!empty && item != null) {
 				imageView.setImage(item.getIcon());
+				label.setText(null);
 				graphic = label;
 			}
 			setGraphic(graphic);
@@ -204,7 +228,7 @@ public class ToolBox extends VBox {
 	private Slider createPencilSlider() {
 		this.pencilSliderLabel = new Label("5.0");
 		double defaultValue = 5.0;
-		this.pencilSlider = new Slider(0, 100, defaultValue);
+		this.pencilSlider = new Slider(0, 20, defaultValue);
 		this.pencilSlider.setShowTickLabels(true);
 		return this.pencilSlider;
 	}
