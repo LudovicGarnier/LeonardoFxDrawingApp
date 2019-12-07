@@ -10,8 +10,10 @@ import javax.imageio.ImageIO;
 
 import effects.ColorAdjustEffect;
 import effects.GaussianBlurEffect;
+import javafx.animation.AnimationTimer;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.scene.ImageCursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -35,6 +37,9 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Shape;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import model.DrawingModel;
@@ -49,6 +54,15 @@ import view.toolbox.ToolBox;
  */
 public class MainView extends Parent {
 
+	AnimationTimer loop;
+	Point2D mouseLocation = new Point2D(0, 0);
+	boolean mousePressed = false;
+	Point2D prevMouseLocation = new Point2D(0, 0);
+
+	Image brush = createBrush(30.0, Color.BLACK);
+	double brushWidthHalf = brush.getWidth();
+	double brushHeighHalf = brush.getHeight();
+	//
 	private MenuBar menuBar;
 	private DrawingModel drawingModel;
 	private StackPane canvasPane;
@@ -68,6 +82,21 @@ public class MainView extends Parent {
 		this.stage = stage;
 	}
 
+	/**
+	 * 
+	 * @param d
+	 * @param black
+	 * @return
+	 */
+	private Image createBrush(double radius, Color color) {
+		Shape shape = new Circle();
+		return null;
+	}
+
+	/**
+	 * 
+	 * @param imageCursor
+	 */
 	public void setCursor(ImageCursor imageCursor) {
 		this.scene.setCursor(imageCursor);
 	}
@@ -162,11 +191,8 @@ public class MainView extends Parent {
 		MenuItem bloomItem = new MenuItem("Bloom");
 		MenuItem colorAdjustItem = new MenuItem("Color Adjust");
 		colorAdjustItem.setOnAction(e -> {
-//			if (this.drawingModel.getImageView() != null) {
-			System.out.println(this.drawingModel.getImageView());
 			new ColorAdjustEffect(this.drawingModel, this);
 
-//			}
 		});
 		//
 		Menu blurtMenu = new Menu("Blur");
