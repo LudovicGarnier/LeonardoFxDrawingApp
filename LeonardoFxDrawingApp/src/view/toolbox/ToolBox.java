@@ -1,11 +1,13 @@
 package view.toolbox;
 
+import javafx.animation.AnimationTimer;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.scene.ImageCursor;
 import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
@@ -46,6 +48,12 @@ public class ToolBox extends VBox {
 	private final Button eraserToolButton;
 	private final Button colorSelectionToolButton;
 	private final Button zoomToolButton;
+	//
+	AnimationTimer loop;
+    Point2D mouseLocation = new Point2D( 0, 0);
+    boolean mousePressed = false;
+    Point2D prevMouseLocation = new Point2D( 0, 0);
+    
 	//
 	private final String markerIconUrl = "/ressources/icons8-crayon-40.png";
 	private final String brushIconUrl = "/ressources/icons8-paint-40.png";

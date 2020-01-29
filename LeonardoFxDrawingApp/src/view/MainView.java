@@ -54,14 +54,14 @@ import view.toolbox.ToolBox;
  */
 public class MainView extends Parent {
 
-	AnimationTimer loop;
-	Point2D mouseLocation = new Point2D(0, 0);
-	boolean mousePressed = false;
-	Point2D prevMouseLocation = new Point2D(0, 0);
-
-	Image brush = createBrush(30.0, Color.BLACK);
-	double brushWidthHalf = brush.getWidth();
-	double brushHeighHalf = brush.getHeight();
+//	AnimationTimer loop;
+//	Point2D mouseLocation = new Point2D(0, 0);
+//	boolean mousePressed = false;
+//	Point2D prevMouseLocation = new Point2D(0, 0);
+//
+//	Image brush = createBrush(30.0, Color.BLACK);
+//	double brushWidthHalf = brush.getWidth();
+//	double brushHeighHalf = brush.getHeight();
 	//
 	private MenuBar menuBar;
 	private DrawingModel drawingModel;
