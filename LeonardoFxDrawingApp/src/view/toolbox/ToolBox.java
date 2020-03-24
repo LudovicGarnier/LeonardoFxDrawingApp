@@ -10,6 +10,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.ImageCursor;
 import javafx.scene.Node;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
@@ -20,12 +21,20 @@ import javafx.scene.control.Slider;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.RadialGradient;
+import javafx.scene.paint.Stop;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.FillRule;
+import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
+import model.PaintTool;
 import view.MainView;
 
 /**
@@ -49,11 +58,13 @@ public class ToolBox extends VBox {
 	private final Button colorSelectionToolButton;
 	private final Button zoomToolButton;
 	//
-	AnimationTimer loop;
-    Point2D mouseLocation = new Point2D( 0, 0);
-    boolean mousePressed = false;
-    Point2D prevMouseLocation = new Point2D( 0, 0);
-    
+	private AnimationTimer loop;
+	private Point2D mouseLocation = new Point2D(0, 0);
+	private boolean mousePressed = false;
+	private Point2D prevMouseLocation = new Point2D(0, 0);
+	private PaintTool paintTool;
+//    double brushWidthHalf = paintTool.getWidth() / 2.0;
+//    double brushHeightHalf = paintTool.getHeight() / 2.0;
 	//
 	private final String markerIconUrl = "/ressources/icons8-crayon-40.png";
 	private final String brushIconUrl = "/ressources/icons8-paint-40.png";
@@ -85,7 +96,7 @@ public class ToolBox extends VBox {
 	private final ImageCursor rollerCursor = new ImageCursor(rollerIcon, 20, 0);
 	private final ImageCursor sprayerCursor = new ImageCursor(sprayerIcon, 0, 25);
 
-	public ToolBox(MainView view) {
+	public ToolBox(MainView view, PaintTool paintTool) {
 		super(5.0);
 		this.mainView = view;
 		GridPane gridPane = new GridPane();
@@ -259,8 +270,9 @@ public class ToolBox extends VBox {
 	 * called when pencil button is clicked
 	 */
 	private void onSprayerButtonClicked() {
+	
 		this.mainView.setCursor(sprayerCursor);
-
+//		  loop = new AnimationTimer() {
 		GraphicsContext gc = this.mainView.getGraphicsContext();
 		this.mainView.getDrawingMode().getCanvas().setOnMousePressed(e -> {
 			gc.beginPath();
@@ -280,6 +292,18 @@ public class ToolBox extends VBox {
 			gc.lineTo(e.getX(), e.getY());
 			gc.stroke();
 		});
+		addListeners();
+		startAnimation();
+	}
+
+	public static Image createBrush(double radius, Color color) {
+		// create gradient image with given color
+		Circle brush = new Circle(radius);
+		RadialGradient gradient1 = new RadialGradient(0, 0, 0, 0, radius, false, CycleMethod.NO_CYCLE,
+				new Stop(0, color.deriveColor(1, 1, 1, 0.3)), new Stop(1, color.deriveColor(1, 1, 1, 0)));
+		brush.setFill(gradient1);
+		// create image
+		return createImage(brush);
 	}
 
 	/**
@@ -305,6 +329,74 @@ public class ToolBox extends VBox {
 			gc.lineTo(e.getX(), e.getY());
 			gc.stroke();
 		});
+	}
+
+	private void addListeners() {
+		if (this.mainView.getScene() != null) {
+			this.mainView.getScene().addEventFilter(MouseEvent.ANY, e -> {
+				mouseLocation = new Point2D(e.getX(), e.getY());
+				mousePressed = e.isPrimaryButtonDown();
+			});
+		}
+	}
+
+	public static Image createImage(Node node) {
+		WritableImage wi;
+		SnapshotParameters parameters = new SnapshotParameters();
+		parameters.setFill(Color.TRANSPARENT);
+		int imageWidth = (int) node.getBoundsInLocal().getWidth();
+		int imageHeight = (int) node.getBoundsInLocal().getHeight();
+		wi = new WritableImage(imageWidth, imageHeight);
+		node.snapshot(parameters, wi);
+
+		return wi;
+
+	}
+
+	// https://de.wikipedia.org/wiki/Bresenham-Algorithmus
+	private void bresenhamLine(double x0, double y0, double x1, double y1) {
+		double dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1. : -1.;
+		double dy = -Math.abs(y1 - y0), sy = y0 < y1 ? 1. : -1.;
+		double err = dx + dy, e2; /* error value e_xy */
+
+		while (true) {
+//			 this.mainView.getGraphicsContext().drawImage(brush, x0 - brushWidthHalf, y0 - brushHeightHalf);
+			if (x0 == x1 && y0 == y1)
+				break;
+			e2 = 2. * err;
+			if (e2 > dy) {
+				err += dy;
+				x0 += sx;
+			} /* e_xy+e_x > 0 */
+			if (e2 < dx) {
+				err += dx;
+				y0 += sy;
+			} /* e_xy+e_y < 0 */
+		}
+	}
+
+	private void startAnimation() {
+		loop = new AnimationTimer() {
+			@Override
+			public void handle(long now) {
+				if (mousePressed) {
+					bresenhamLine(prevMouseLocation.getX(), prevMouseLocation.getY(), mouseLocation.getX(),
+							mouseLocation.getY());
+				}
+				prevMouseLocation = new Point2D(mouseLocation.getX(), mouseLocation.getY());
+			}
+		};
+		loop.start();
+	}
+
+	public static Image createBrush(Shape shape, double radius, Color color) {
+		// create gradient image with given color
+		Circle brush = new Circle(radius);
+		RadialGradient gradient1 = new RadialGradient(0, 0, 0, 0, radius, false, CycleMethod.NO_CYCLE,
+				new Stop(0, color.deriveColor(1, 1, 1, 0.3)), new Stop(1, color.deriveColor(1, 1, 1, 0)));
+		brush.setFill(gradient1);
+		// create image
+		return createImage(brush);
 	}
 
 	/**

@@ -8,26 +8,34 @@ import java.util.Optional;
 
 import javax.imageio.ImageIO;
 
-import effects.ColorAdjustEffect;
-import effects.GaussianBlurEffect;
-import javafx.animation.AnimationTimer;
+import effects.BloomStage;
+import effects.ColorAdjustStage;
+import effects.DropShadowStage;
+import effects.GaussianBlurStage;
+import effects.GlowStage;
+import effects.InnerShadowStage;
+import effects.MotionBlurStage;
+import effects.ReflectionStage;
+import effects.SepiaToneStage;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
 import javafx.scene.ImageCursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
@@ -37,12 +45,11 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Shape;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import model.DrawingModel;
+import transform.RotateTransform;
+import transform.TranslateTransform;
 import view.toolbox.ToolBox;
 
 /**
@@ -54,15 +61,6 @@ import view.toolbox.ToolBox;
  */
 public class MainView extends Parent {
 
-//	AnimationTimer loop;
-//	Point2D mouseLocation = new Point2D(0, 0);
-//	boolean mousePressed = false;
-//	Point2D prevMouseLocation = new Point2D(0, 0);
-//
-//	Image brush = createBrush(30.0, Color.BLACK);
-//	double brushWidthHalf = brush.getWidth();
-//	double brushHeighHalf = brush.getHeight();
-	//
 	private MenuBar menuBar;
 	private DrawingModel drawingModel;
 	private StackPane canvasPane;
@@ -84,17 +82,6 @@ public class MainView extends Parent {
 
 	/**
 	 * 
-	 * @param d
-	 * @param black
-	 * @return
-	 */
-	private Image createBrush(double radius, Color color) {
-		Shape shape = new Circle();
-		return null;
-	}
-
-	/**
-	 * 
 	 * @param imageCursor
 	 */
 	public void setCursor(ImageCursor imageCursor) {
@@ -111,7 +98,7 @@ public class MainView extends Parent {
 		this.canvasPane.getChildren().add(this.drawingModel);
 		//
 		this.menuBar = initalizeMenuBar();
-		ToolBox toolBox = new ToolBox(this);
+		ToolBox toolBox = new ToolBox(this, null);
 		//
 		this.borderPane = new BorderPane();
 		this.borderPane.setCenter(canvasPane);
@@ -181,7 +168,13 @@ public class MainView extends Parent {
 		// Transform Menu
 		Menu transformMenu = new Menu("Transform");
 		MenuItem rotateItem = new MenuItem("Rotate");
+		rotateItem.setOnAction(e -> {
+			new RotateTransform(this.drawingModel, this);
+		});
 		MenuItem translateItem = new MenuItem("Translate");
+		translateItem.setOnAction(e -> {
+			new TranslateTransform(this.drawingModel, this);
+		});
 		MenuItem scalingItem = new MenuItem("Scale");
 		MenuItem shearingItem = new MenuItem("Shearing");
 		MenuItem transformationItem = new MenuItem("Transformation");
@@ -189,32 +182,52 @@ public class MainView extends Parent {
 		// Effect Menu
 		Menu effectMenu = new Menu("Effect");
 		MenuItem bloomItem = new MenuItem("Bloom");
+		bloomItem.setOnAction(e -> {
+			new BloomStage(this.drawingModel, this);
+		});
 		MenuItem colorAdjustItem = new MenuItem("Color Adjust");
 		colorAdjustItem.setOnAction(e -> {
-			new ColorAdjustEffect(this.drawingModel, this);
-
+			new ColorAdjustStage(this.drawingModel, this);
 		});
 		//
 		Menu blurtMenu = new Menu("Blur");
 		MenuItem gaussianBlurItem = new MenuItem("Gaussian Blur");
 		gaussianBlurItem.setOnAction(e -> {
-			GaussianBlurEffect gaussianBlur = new GaussianBlurEffect(this.drawingModel.getImageView());
+			new GaussianBlurStage(this.drawingModel, this);
 		});
 		MenuItem motionBlurItem = new MenuItem("Motion Blur");
+		motionBlurItem.setOnAction(e -> {
+			new MotionBlurStage(this.drawingModel, this);
+		});
 		//
 		Menu shadowtMenu = new Menu("Shadow");
 		MenuItem dropShadowItem = new MenuItem("Drop Shadow");
+		dropShadowItem.setOnAction(e -> {
+			new DropShadowStage(this.drawingModel, this);
+		});
 		MenuItem innerShadowItem = new MenuItem("Inner Shadow");
+		innerShadowItem.setOnAction(e -> {
+			new InnerShadowStage(this.drawingModel, this);
+		});
 		//
 		MenuItem glowItem = new MenuItem("Glow");
-		MenuItem lightingItem = new MenuItem("Lighting");
+		glowItem.setOnAction(e -> {
+			new GlowStage(this.drawingModel, this);
+		});
+
 		MenuItem reflectionItem = new MenuItem("Reflection");
+		reflectionItem.setOnAction(e -> {
+			new ReflectionStage(this.drawingModel, this);
+		});
 		MenuItem sepiaToneItem = new MenuItem("Sepia Tone");
+		sepiaToneItem.setOnAction(e -> {
+			new SepiaToneStage(this.drawingModel, this);
+		});
 		MenuItem perspectiveTransformItem = new MenuItem("Perspective Transform");
 
 		shadowtMenu.getItems().addAll(dropShadowItem, innerShadowItem);
 		blurtMenu.getItems().addAll(gaussianBlurItem, motionBlurItem);
-		effectMenu.getItems().addAll(bloomItem, blurtMenu, shadowtMenu, glowItem, lightingItem, reflectionItem,
+		effectMenu.getItems().addAll(bloomItem, blurtMenu, shadowtMenu, glowItem, reflectionItem,
 				colorAdjustItem, sepiaToneItem, perspectiveTransformItem);
 		//
 		newFileItem.setMnemonicParsing(true);
@@ -284,11 +297,17 @@ public class MainView extends Parent {
 		dialogPane.setContent(setting);
 		alertNewFile.setDialogPane(dialogPane);
 		Optional<ButtonType> result = alertNewFile.showAndWait();
+		double h = Double.valueOf(heightTextField.getText());
+		double w = Double.valueOf(widthTextField.getText());
 		if (!result.isPresent()) {
-
 		} else if (result.get() == ButtonType.OK) {
-			closeFile();
-
+//			closeFile();
+			System.out.println(w + " - " + h);
+			DrawingModel newModel = new DrawingModel(w, h, null);
+			newModel.setImageView(new ImageView());
+			this.setDrawingModel(newModel);
+		
+			this.getBorderpane().setCenter( new DrawingModel(w, h, null));
 		} else if (result.get() == ButtonType.CANCEL) {
 			alertNewFile.close();
 		}
@@ -341,7 +360,6 @@ public class MainView extends Parent {
 			Image image = SwingFXUtils.toFXImage(bufferedImage, null);
 			System.out.println("File opened --> " + file.toURI().toString());
 			ImageView view = new ImageView(image);
-			DrawingModel tmp = this.drawingModel;
 			// si l'image est un portrait plus grand que le pane actuel
 			if (image.getHeight() > image.getWidth() && image.getHeight() > this.drawingModel.getPaneHeight()) {
 				view.setFitHeight(100);
@@ -360,10 +378,10 @@ public class MainView extends Parent {
 			} else {
 				this.drawingModel = new DrawingModel(image.getWidth(), image.getHeight(), view);
 			}
-//			ScrollPane scrollPane = new ScrollPane(drawingModel);
-//			scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-//			scrollPane.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
-//			this.mainView.getBorderpane().setCenter(scrollPane);
+			ScrollPane scrollPane = new ScrollPane(drawingModel);
+			scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+			scrollPane.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
+			this.getBorderpane().setCenter(scrollPane);
 			this.drawingModel.setImageView(view);
 			this.getBorderpane().setCenter(this.drawingModel);
 		} catch (IOException e) {

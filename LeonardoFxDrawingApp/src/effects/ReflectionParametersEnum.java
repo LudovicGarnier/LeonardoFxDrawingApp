@@ -1,0 +1,8 @@
+package effects;
+
+public enum ReflectionParametersEnum {
+	REFLECTION_TOP_OFFSET,
+	REFLECTION_TOP_OPACITY,
+	REFLECTION_BOTTOM_OPACITY,
+	REFLECTION_FRACTION
+}

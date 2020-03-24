@@ -1,5 +1,7 @@
 package model;
 
+import java.util.logging.Logger;
+
 import javafx.scene.Parent;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.image.ImageView;
@@ -10,7 +12,7 @@ import javafx.scene.image.ImageView;
  *
  */
 public class DrawingModel extends Parent {
-
+	static final Logger LOGGER = Logger.getLogger(DrawingModel.class.getName());
 	private ImageView imageView;
 	private double paneWidth;
 	private double paneHeight;
@@ -37,12 +39,10 @@ public class DrawingModel extends Parent {
 		} else {
 			this.getChildren().add(this.canvas);
 		}
-		
 
 	}
 
 	public ImageView getImageView() {
-
 		return this.imageView;
 	}
 
