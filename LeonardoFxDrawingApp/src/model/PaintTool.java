@@ -10,7 +10,7 @@ import javafx.scene.shape.Shape;
  */
 public class PaintTool extends Image {
 
-	private String url;
+	private String url; 
 
 	private Shape shape;
 
